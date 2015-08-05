@@ -1,11 +1,18 @@
 h1{
     text-align: center
 }
-canvas{
-    margin: 50px 150px auto;
-    border: 1px solid;
-}
+
 body{
     background-color: #F1F1F1;
 
+}
+#draw{
+    margin: 70px 120px;
+}
+
+#tip{
+    position: absolute;
+    border: 1px solid #e4e5ff;
+    background-color: #E0FFFF;
+    border-radius: 3px;
 }
