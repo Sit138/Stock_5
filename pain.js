@@ -125,8 +125,8 @@ function paintOXY(json){
             var dx = mouseX - dot.x;
             var dy = mouseY - dot.y;
             if (dx * dx + dy * dy < dot.rXr) {
-                tipCanvas.style.left = (dot.x + 100) + "px";
-                tipCanvas.style.top = (dot.y + 100) + "px";
+                tipCanvas.style.left = (dot.x + 30) + "px";
+                tipCanvas.style.top = (dot.y - 40) + "px";
                 tipCtx.clearRect(0, 0, tipCanvas.width, tipCanvas.height);
                 document.getElementById("tip").style.display = "block";
                 tipCtx.textBaseline = "middle";
@@ -146,7 +146,7 @@ function paintOXY(json){
 function loadKeyFromJson(paintOXY){
     var xhttp = new XMLHttpRequest(),
         json, i;
-    xhttp.open('GET', 'population.json', true);
+    xhttp.open('GET', 'population1.json', true);
     xhttp.send();
     xhttp.onreadystatechange = function(){
         try{
