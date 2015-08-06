@@ -1,45 +1,70 @@
 var canvas = document.getElementById('draw'),
-    x = canvas.getContext("2d");//основная канва
-var tipCanvas = document.getElementById("tip");//здесь будем выводить сообщения
+    x = canvas.getContext("2d");
+var tipCanvas = document.getElementById("tip");
 var tipCtx = tipCanvas.getContext("2d");
 var canvasOffset = $("#draw").offset();
 var offsetX = canvasOffset.left;
 var offsetY = canvasOffset.top;
-function normaliz(num){//нормирование численности в px
-    var px = 250 - 200 * (num - 110000000) / 40000000;//линейная интерполяция
+/*Нормирует y в координату(линейная интерполяция)*/
+function normaliz(num, max, min){
+    var px = 250 - (200 * (num - min) / (max - min));
     return px;
 }
-function inRad(num) {//переводит градусы в радианы
+/*Нахождение максимума*/
+function getMax(data, masKey){
+    var max = 0;
+    for (var i = 0; i < data.length; i++) {
+        if (data[i][masKey[1]] > max) {
+            max = data[i][masKey[1]];
+        }
+    }
+    return max;
+}
+/*Нахождение минимума*/
+function getMin(data, masKey){
+    var min = data[0][masKey[1]];
+    for (var i = 0; i < data.length; i++) {
+        if (data[i][masKey[1]] < min) {
+            min = data[i][masKey[1]];
+        }
+    }
+    return min;
+}
+/*Перевод градусов в радианы*/
+function inRad(num) {
     return num * Math.PI / 180;
 }
+/*Рисовалка графика*/
 function paintOXY(json){
-    //var ctx = canvas.getContext("2d");
-    x.beginPath();
-    x.lineWidth = 0.5;
-    x.font = "15px sans-serif";
-    for(var i = 50, j = 150; i < 260, j > 100; i += 50, j -= 10){
-        x.moveTo(200, i);
-        x.lineTo(1000, i);
-        x.font = "15px sans-serif";
-        x.fillText(j + "000 000", 100, i);
-    }
-    x.save();
-    x.font = "italic 17px sans-serif";
-    x.rotate(inRad(270));
-    x.fillText("Население", -190, 70);
-    x.restore();
-
     var pop = json,
         length = pop.length,
         masKey = Object.keys(pop[0]),
         step = (1000 - 200)/length;
-    console.log(masKey);
+    var max = getMax(pop, masKey);
+    var min = getMin(pop, masKey);
+    var dy = (max - min)/4;
+    console.log(max);
+    console.log(min);
+    x.beginPath();
+    x.lineWidth = 0.5;
+    x.font = "15px sans-serif";
+    for(var i = 50, j = 150, oy = max; i < 260, j > 100; i += 50, j -= 10, oy -= dy){
+        x.moveTo(200, i);
+        x.lineTo(1000, i);
+        x.font = "17px italic sans-serif";
+        x.fillText(Math.round(oy) + "", 100, i);
+    }
+    x.save();
+    x.font = "italic 17px sans-serif";
+    x.rotate(inRad(270));
+    x.fillText("OY", -150, 70);
+    x.restore();
+    //console.log(masKey);
     x.stroke();
-
     x.beginPath();
     x.restore();
     x.save();
-    x.moveTo(200, normaliz(pop[0][masKey[1]]));
+    x.moveTo(200, normaliz(pop[0][masKey[1]], max, min));
     x.lineWidth = "2";
     x.strokeStyle = "blue";
     x.lineJoin = "round";
@@ -49,15 +74,15 @@ function paintOXY(json){
     x.shadowColor='blue';
     i = 200 + step;
     for(i, j = 1; j < length; i += step, j++){
-        x.lineTo(i, normaliz(pop[j][masKey[1]]));
+        x.lineTo(i, normaliz(pop[j][masKey[1]], max, min));
 
     }
     x.stroke();
     i = 200 + step;
     var dots = [];
-    dots.push({//начальная позиция(запишем отдельно)
+    dots.push({
         x: 200,
-        y: normaliz(pop[0][masKey[1]]),
+        y: normaliz(pop[0][masKey[1]], max, min),
         r: 4,
         rXr: 16,
         color: "red",
@@ -70,12 +95,12 @@ function paintOXY(json){
         x.save();
         x.strokeStyle = "red";
         x.fillStyle = "red";
-        x.arc(i, normaliz(pop[j][masKey[1]]), 4, 0, Math.PI*2, false);
+        x.arc(i, normaliz(pop[j][masKey[1]], max, min), 4, 0, Math.PI*2, false);
         x.fill();
         x.stroke();
         dots.push({
             x: i,
-            y: normaliz(pop[j][masKey[1]]),
+            y: normaliz(pop[j][masKey[1]], max, min),
             r: 4,
             rXr: 16,
             color: "red",
@@ -90,14 +115,10 @@ function paintOXY(json){
         x.fillText(pop[j][masKey[0]], i, 270);
     }
     x.stroke();
-
-
     /*Добавляем событие на движение мыши*/
     canvas.addEventListener('mousemove', function(e) {
         mouseX = parseInt(e.clientX - offsetX);
         mouseY = parseInt(e.clientY - offsetY);
-
-        // Put your mousemove stuff here
         var hit = false;
         for (var i = 0; i < dots.length; i++) {
             var dot = dots[i];
@@ -107,13 +128,11 @@ function paintOXY(json){
                 tipCanvas.style.left = (dot.x + 100) + "px";
                 tipCanvas.style.top = (dot.y + 100) + "px";
                 tipCtx.clearRect(0, 0, tipCanvas.width, tipCanvas.height);
-                //                  tipCtx.rect(0,0,tipCanvas.width,tipCanvas.height);
-                //tipCtx.fillText($(dot.tip).val(), 5, 10);
                 document.getElementById("tip").style.display = "block";
                 tipCtx.textBaseline = "middle";
                 tipCtx.font = 'italic 10pt sans-serif';
-                tipCtx.fillText("Год: " + pop[i][masKey[0]],5,10);
-                tipCtx.fillText("Население: " + pop[i][masKey[1]],5,25);
+                tipCtx.fillText(pop[i][masKey[0]],5,10);
+                tipCtx.fillText(pop[i][masKey[1]],5,25);
                 hit = true;
             }
         }
@@ -121,15 +140,13 @@ function paintOXY(json){
             tipCanvas.style.left = "-100px";
             document.getElementById("tip").style.display = "none";
         }
-
     }, false);
 }
-
 /*Функция для загрузки json*/
 function loadKeyFromJson(paintOXY){
     var xhttp = new XMLHttpRequest(),
         json, i;
-    xhttp.open('GET', 'population1.json', true);
+    xhttp.open('GET', 'population.json', true);
     xhttp.send();
     xhttp.onreadystatechange = function(){
         try{

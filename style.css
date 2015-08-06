@@ -1,5 +1,6 @@
 h1{
-    text-align: center
+    text-align: center;
+    margin-left: auto;
 }
 
 body{
@@ -7,7 +8,10 @@ body{
 
 }
 #draw{
-    margin: 70px 120px;
+    border: solid 1px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
 }
 
 #tip{
